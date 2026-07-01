@@ -84,7 +84,7 @@
                 <input type="radio" name="text_orientation" value="horizontal" checked onchange="writeIn(this.name,this.value);changeStyle(this.name,this.value);">horizontal
                 <input type="radio" name="text_orientation" value="vertical" onchange="writeIn(this.name,this.value);changeStyle(this.name,this.value);">vertical
                 <br>
-                <span>行内预编辑</span><input type="checkbox" name="inline_preedit" onchange="writeIn(this.name,this.checked);changeStyle(this.name,this.checked);"><br>
+                <span>行内预编辑</span><input type="checkbox" name="inline_preedit" checked onchange="writeIn(this.name,this.checked);changeStyle(this.name,this.checked);"><br>
                 <span>候选嵌入</span><input type="checkbox" name="inline_candidate" onchange="writeIn(this.name,this.checked);changeStyle(this.name,this.checked);"><br>
                 <span>紧贴边缘</span><input type="checkbox" name="memorize_size" checked onchange="writeIn(this.name,this.checked);"><br>
                 <span>透明叠加</span><input type="checkbox" name="mutual_exclusive" onchange="writeIn(this.name,this.checked);changeStyle(this.name,this.checked);"><br>
@@ -233,7 +233,7 @@
               <div>&nbsp;&nbsp;comment_text_color:&nbsp;'<span id="comment_text_color"></span>'</div>
               <div>&nbsp;&nbsp;candidate_list_layout:&nbsp;<span id="candidate_list_layout">linear</span></div>
               <div>&nbsp;&nbsp;text_orientation:&nbsp;<span id="text_orientation">horizontal</span></div>
-              <div>&nbsp;&nbsp;inline_preedit:&nbsp;<span id="inline_preedit">false</span></div>
+              <div>&nbsp;&nbsp;inline_preedit:&nbsp;<span id="inline_preedit">true</span></div>
               <div>&nbsp;&nbsp;inline_candidate:&nbsp;<span id="inline_candidate">false</span></div>
               <div>&nbsp;&nbsp;memorize_size:&nbsp;<span id="memorize_size">true</span></div>
               <div>&nbsp;&nbsp;mutual_exclusive:&nbsp;<span id="mutual_exclusive">false</span></div>
