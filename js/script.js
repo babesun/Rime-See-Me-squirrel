@@ -361,8 +361,8 @@ function adjustEnvBackgroundForContrast(boxColor){
 			// 文字色与背景形成对比
 			bgInput.style.color = gray > 127 ? '#000000' : '#FFFFFF';
 			// 同步 jscolor picker 显示
-			if(bgInput.jscolor && typeof bgInput.jscolor.fromString === 'function'){
-				bgInput.jscolor.fromString(newEnvHex);
+			if(bgInput.color && typeof bgInput.color.fromString === 'function'){
+				bgInput.color.fromString(newEnvHex);
 			}
 		}
 	} else {
@@ -374,8 +374,8 @@ function adjustEnvBackgroundForContrast(boxColor){
 			bgInput.value = 'F9F9F9';
 			bgInput.style.backgroundColor = '';
 			bgInput.style.color = '';
-			if(bgInput.jscolor && typeof bgInput.jscolor.fromString === 'function'){
-				bgInput.jscolor.fromString('F9F9F9');
+			if(bgInput.color && typeof bgInput.color.fromString === 'function'){
+				bgInput.color.fromString('F9F9F9');
 			}
 		}
 	}
@@ -508,8 +508,8 @@ function generateScheme(primaryHex){
 		var input=document.getElementById(inputId);
 		if(!input) return;
 		input.value=hex;
-		if(input.jscolor && typeof input.jscolor.fromString==='function'){
-			input.jscolor.fromString(hex);
+		if(input.color && typeof input.color.fromString==='function'){
+			input.color.fromString(hex);
 		}
 		changeColor(element, mode, name, hex);
 		setInputColor(input);
@@ -549,18 +549,18 @@ function generateScheme(primaryHex){
 	setColor('hilited_comment_text_input','hilited_comment_text',hilitedComment,'c','code1');
 	// 其他候选项文字 = 正文色
 	var ct=document.getElementById('candidate_text_input');
-	if(ct){ct.value=text; if(ct.jscolor && ct.jscolor.fromString) ct.jscolor.fromString(text); setInputColor(ct);}
+	if(ct){ct.value=text; if(ct.color && ct.color.fromString) ct.color.fromString(text); setInputColor(ct);}
 	changeColor('cursor','c','candidate_text',text);
 	for(var i=2;i<=9;i++) document.getElementById('n'+i).style.color='#'+text;
 	exConvert('candidate_text',text);
 	// 其他候选项序号 = label 色（最弱）
 	var lb=document.getElementById('label_input');
-	if(lb){lb.value=label; if(lb.jscolor && lb.jscolor.fromString) lb.jscolor.fromString(label); setInputColor(lb);}
+	if(lb){lb.value=label; if(lb.color && lb.color.fromString) lb.color.fromString(label); setInputColor(lb);}
 	for(var i=2;i<=9;i++) document.getElementById('label'+i).style.color='#'+label;
 	exConvert('label',label);
 	// 其他候选项提示 = comment 色（弱一级）
 	var cm=document.getElementById('comment_text_input');
-	if(cm){cm.value=comment; if(cm.jscolor && cm.jscolor.fromString) cm.jscolor.fromString(comment); setInputColor(cm);}
+	if(cm){cm.value=comment; if(cm.color && cm.color.fromString) cm.color.fromString(comment); setInputColor(cm);}
 	changeColor('tip','c','comment_text',comment);
 	for(var i=2;i<=9;i++) document.getElementById('code'+i).style.color='#'+comment;
 	exConvert('comment_text',comment);

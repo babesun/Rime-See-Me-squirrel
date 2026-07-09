@@ -345,8 +345,8 @@ function handleFileSelect(evt) {
                 if (!el) continue;
                 el.value = scheme[prop].toUpperCase();
                 el.style.backgroundColor = '#' + scheme[prop];
-                if (el.jscolor && typeof el.jscolor.fromString === 'function') {
-                    el.jscolor.fromString(scheme[prop]);
+                if (el.color && typeof el.color.fromString === 'function') {
+                    el.color.fromString(scheme[prop]);
                 }
             }
         }
