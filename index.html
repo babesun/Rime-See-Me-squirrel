@@ -46,6 +46,9 @@
             <form>
               <fieldset> <legend>自动配色</legend> <span>主<span class="em"></span>色</span>
                 <input class="color {pickerPosition:'left'}" type="text" id="primary_input" value="" placeholder="例：BD8F13" onchange="onPrimaryChange(this.value);" style="width:100px;text-transform:uppercase;"><br>
+                <span>主<span class="em"></span>色<span class="em"></span>用<span class="em"></span>于</span>
+                <label><input type="radio" name="primary_use" value="background" checked onchange="onPrimaryUseChange()">选定候选项背景</label>
+                <label><input type="radio" name="primary_use" value="text" onchange="onPrimaryUseChange()">选定候选项文字</label><br>
                 <span>深<span class="em"></span>浅</span>
                 <label><input type="radio" name="theme_mode" value="auto" checked onchange="onThemeModeChange()">自动</label>
                 <label><input type="radio" name="theme_mode" value="light" onchange="onThemeModeChange()">浅色</label>

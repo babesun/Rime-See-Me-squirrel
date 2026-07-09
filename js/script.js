@@ -317,6 +317,12 @@ function onThemeModeChange(){
 	if(primary && primary.value) generateScheme(primary.value);
 	applyEnvBackground();
 }
+function onPrimaryUseChange(){
+	// 切换主色用途：按当前主色重新生成配色
+	var primary=document.getElementById('primary_input');
+	if(primary && primary.value) generateScheme(primary.value);
+	applyEnvBackground();
+}
 function adjustEnvBackgroundForContrast(boxColor){
 	// 当小视窗背景色与环境背景色接近时，自动调亮或调暗环境色（纯黑白灰）以增加对比
 	if(!boxColor || !/^[0-9A-F]{6}$/i.test(boxColor)) return;
@@ -440,7 +446,8 @@ function generateScheme(primaryHex){
 	}
 	var primaryRL=relativeLuminance(primaryHex);
 	var isBright=primaryRL>0.4;   // 较亮主色
-	var isDark=primaryRL<0.2;     // 较暗主色
+	var isDark=primaryRL<0.12;   // 较暗主色（更严格，避免中等亮度被误判）
+	var isMedium=!isBright&&!isDark;  // 中等亮度主色
 
 	// 2. 背景：始终比主色更亮（让高亮作为视觉焦点，背景衬托不抢戏）
 	//    基调先由手动模式决定（手动优先），自动模式按主色亮度判断
@@ -454,25 +461,63 @@ function generateScheme(primaryHex){
 		else useLight = l>50;
 	}
 	var backL, backS;
-	if(useLight){
-		if(isBright){
-			// 亮主色 → 背景更浅、更低饱和度（接近中性）
-			backL=Math.min(99, Math.max(l+18, 95));
-			backS=Math.min(s*0.08, 4);
+	if (useLight) {
+
+		if (isBright) {
+			// 浅色主题：亮主色
+			backL = Math.min(99, Math.max(l + 18, 95));
+			backS = Math.min(s * 0.15, 8);
 		} else {
-			backL=97;
-			backS=Math.min(s*0.1, 5);
+			// 浅色主题：非亮主色
+			backL = 97;
+			backS = Math.min(s * 0.15, 8);
 		}
+
 	} else {
-		if(isDark){
-			// 暗主色 → 背景比主色略亮（不更暗），同色系微调
-			backL=Math.min(35, l+15);
-			backS=Math.min(s*0.55, 20);
+
+		if (isDark) {
+			// 暗主色：背景略亮于主色，但保持深沉
+			backL = Math.max(6, Math.min(10, l + 4));
+			backS = Math.min(s * 0.30, 12);
+
+		} else if (isMedium) {
+			// 中亮度主色：背景适度压暗，保留层次
+			var targetL = l - Math.min(10, s * 0.10);
+			backL = Math.max(10, Math.min(16, targetL));
+			backS = Math.min(s * 0.30, 12);
+
 		} else {
-			backL=12;
-			backS=Math.min(s*0.5, 15);
+			// 亮主色（深色主题）：背景略亮一些，避免过于压抑
+			backL = 20;
+			backS = Math.min(s * 0.22, 9);
 		}
+
 	}
+	// if(useLight){
+	// 	if(isBright){
+	// 		// 亮主色 → 背景更浅、更低饱和度（接近中性）
+	// 		backL=Math.min(99, Math.max(l+18, 95));
+	// 		backS=Math.min(s*0.08, 4);
+	// 	} else {
+	// 		backL=97;
+	// 		backS=Math.min(s*0.1, 5);
+	// 	}
+	// } else {
+	// 	if(isDark){
+	// 		// 暗主色 → 背景比主色略亮（不更暗），同色系微调
+	// 		backL=Math.min(35, l+15);
+	// 		backS=Math.min(s*0.55, 20);
+	// 	} else if(isMedium){
+	// 		// 中等亮度主色 → 背景柔和过渡（比主色略暗，保持深邃感）
+	// 		// 高饱和度主色需要更暗背景来衬托
+	// 		var targetL = l - Math.min(8, s*0.08);  // 根据饱和度微调
+	// 		backL=Math.max(12, Math.min(15, targetL));  // 允许背景比主色更暗
+	// 		backS = Math.min(s * 0.35, 14);;  // 保留部分色相倾向
+	// 	} else {
+	// 		backL=12;
+	// 		backS=Math.min(s*0.5, 15);
+	// 	}
+	// }
 	var back=hslToHex(h, backS, backL);
 
 	// 3. 边框：单一色相，介于背景和主色之间
@@ -503,6 +548,67 @@ function generateScheme(primaryHex){
 	var accent=primaryHex;
 	// 高亮文字：WCAG 优先，与主色背景形成 ≥4.5:1 对比
 	var candidateContrast=getContrastColor(primaryHex);
+
+	// 辅助：在 RGB 空间内按比例混合两种颜色
+	function mixHex(c1, c2, ratio){
+		var r1=parseInt(c1.slice(0,2),16), g1=parseInt(c1.slice(2,4),16), b1=parseInt(c1.slice(4,6),16);
+		var r2=parseInt(c2.slice(0,2),16), g2=parseInt(c2.slice(2,4),16), b2=parseInt(c2.slice(4,6),16);
+		var r=Math.round(r1*(1-ratio)+r2*ratio);
+		var g=Math.round(g1*(1-ratio)+g2*ratio);
+		var b=Math.round(b1*(1-ratio)+b2*ratio);
+		return ('00'+((r<<16)|(g<<8)|b).toString(16)).slice(-6).toUpperCase();
+	}
+
+	// === 选定候选项的颜色（主色用途）===
+	// 取用户选择的"主色用于"模式
+	var primaryUseEl = document.querySelector('input[name="primary_use"]:checked');
+	var primaryUse = primaryUseEl ? primaryUseEl.value : 'background';
+
+	var hilitedText, hilitedComment, hilitedLabel, hilitedBackHex;
+	if (primaryUse === 'text') {
+		// === 模式2：主色用于"选定候选项文字" ===
+		// 选定候选项文字 = 主色（始终保留主色，不做兜底降级）
+		hilitedText = accent;
+		// 选定候选项背景：与 box 背景接近，仅根据主色明度微调
+		// 极亮主色 → 比 box 背景略深（避免亮主色与亮背景混淆）
+		// 亮主色 → 比 box 背景略深
+		// 暗主色 → 比 box 背景略亮
+		var primaryL = hexToHsl(accent)[2];
+		var primaryIsBright = primaryL > 50;
+		var primaryIsVeryBright = primaryL > 65;
+		var hilitedBackL, hilitedBackS;
+		// 策略：背景与 box 背景同色相，亮度根据主题与主色明度调整
+		// 浅色模式：背景 = 纯白（与 box 浅灰背景区分）
+		// 深色模式：背景比 box 背景暗 5-8
+		if (useLight) {
+			// 浅色模式：纯白
+			hilitedBackL = 100;
+		} else if (primaryIsVeryBright) {
+			hilitedBackL = Math.max(backL - 8, 8);
+		} else if (primaryIsBright) {
+			hilitedBackL = Math.max(backL - 5, 10);
+		} else {
+			hilitedBackL = Math.max(backL - 5, 8);
+		}
+		// 背景：与 box 背景同色相，饱和度也保持一致
+		hilitedBackS = backS;
+		hilitedBackHex = hslToHex(h, hilitedBackS, hilitedBackL);
+		// 选定候选项序号：比主色略淡（向背景方向混合 35%）
+		hilitedLabel = mixHex(accent, hilitedBackHex, 0.35);
+		// 选定候选词提示：比主色更淡（向背景方向混合 55%）
+		hilitedComment = mixHex(accent, hilitedBackHex, 0.55);
+		// 文字：始终保留主色（不兜底降级）
+	} else {
+		// === 模式1：主色用于"选定候选项背景"（默认原算法）===
+		hilitedText = candidateContrast;
+		hilitedBackHex = accent;
+		hilitedComment = mixHex(candidateContrast, primaryHex, 0.20);
+		hilitedLabel = mixHex(candidateContrast, primaryHex, 0.40);
+		// 兜底：与主色对比度过低时降级到对比色（保留可读性）
+		if (contrastRatio(primaryHex, hilitedComment) < 3.0) hilitedComment = candidateContrast;
+		if (contrastRatio(primaryHex, hilitedLabel) < 2.5) hilitedLabel = candidateContrast;
+	}
+
 	// 同步更新预览与输入框
 	function setColor(inputId,name,hex,mode,element){
 		var input=document.getElementById(inputId);
@@ -525,26 +631,9 @@ function generateScheme(primaryHex){
 	// 组字区高亮（编码 pinyin）= Accent；组字区高亮背景 = 主背景
 	setColor('hilited_text_input','hilited_text',accent,'c','hilited');
 	setColor('hilited_back_input','hilited_back',back,'bg','hilited');
-	// 选定候选项：背景 = Accent，内部建立独立信息层级
-	// 正文（最高权重）= 纯对比色；Comment = 对比色与主色 20% 混合；
-	// Label = 对比色与主色 40% 混合；通过明度建立层级，引入主题色倾向
-	function mixHex(c1, c2, ratio){
-		var r1=parseInt(c1.slice(0,2),16), g1=parseInt(c1.slice(2,4),16), b1=parseInt(c1.slice(4,6),16);
-		var r2=parseInt(c2.slice(0,2),16), g2=parseInt(c2.slice(2,4),16), b2=parseInt(c2.slice(4,6),16);
-		var r=Math.round(r1*(1-ratio)+r2*ratio);
-		var g=Math.round(g1*(1-ratio)+g2*ratio);
-		var b=Math.round(b1*(1-ratio)+b2*ratio);
-		return ('00'+((r<<16)|(g<<8)|b).toString(16)).slice(-6).toUpperCase();
-	}
-	var hilitedText = candidateContrast;
-	var hilitedComment = mixHex(candidateContrast, primaryHex, 0.20);
-	var hilitedLabel = mixHex(candidateContrast, primaryHex, 0.40);
-	// 兜底：与主色对比度过低时降级到对比色（保留可读性）
-	if(contrastRatio(primaryHex, hilitedComment) < 3.0) hilitedComment = candidateContrast;
-	if(contrastRatio(primaryHex, hilitedLabel) < 2.5) hilitedLabel = candidateContrast;
-
+	// 选定候选项（主色用途决定各角色取值）
 	setColor('hilited_candidate_text_input','hilited_candidate_text',hilitedText,'c','n1');
-	setColor('hilited_candidate_back_input','hilited_candidate_back',primaryHex,'bg','n1');
+	setColor('hilited_candidate_back_input','hilited_candidate_back',hilitedBackHex,'bg','n1');
 	setColor('hilited_candidate_label_input','hilited_candidate_label',hilitedLabel,'c','label1');
 	setColor('hilited_comment_text_input','hilited_comment_text',hilitedComment,'c','code1');
 	// 其他候选项文字 = 正文色
